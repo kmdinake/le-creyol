@@ -1,0 +1,6 @@
+.idea/*
+.vscode/*
+*.iml
+out/*
+LICENSE
+README.md
