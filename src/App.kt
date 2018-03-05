@@ -1,13 +1,14 @@
 /* Imports */
+import kotlin.system.exitProcess
 import pso.*
 
 fun main(args: Array<String>) {
-	if (args.size < 2) {
+	if (args.isEmpty()) {
 		println("$ lecreyol -help\tFor help on using Le-Creyol.")
 		exitProcess(0)
 	}
 	
-	if (args[2] == "-help") {
+	if (args[0] == "-help") {
 		usage()
 		exitProcess(0)
 	}
@@ -16,21 +17,25 @@ fun main(args: Array<String>) {
 
 	println("-Please enter the data filename (e.g. data1.csv)")
 	print("> ")
-	var filename: String = readline().toString()
+	var filename: String = readLine().toString()
 	if (filename == "") {
 		do {
 			println("-Please provide a valid data filename (e.g. data1.csv)")
 			print("> ")
-			filename = readline().toString()
+			filename = readLine().toString()
 		} while (filename == "") 
 	}
 
-	var nrClusters: Int = 0
-	if (args[2] == "-c") {
+	var nrClusters = 0
+	if (args[0] == "-c") {
 		do {
 			println("-Please enter the number of cluster centroids usually greater than 1 (e.g. 3)")
 			print("> ")
-			nrClusters = readline().toInt()
+            try {
+                nrClusters = readLine().toString().toInt()
+            } catch (e: NumberFormatException) {
+                println("-Invalid input, ensure that the number of cluster centroids is a discrete number greater than 1.")
+            }
 		} while (nrClusters < 1)
 	}
 
@@ -52,7 +57,7 @@ fun usage() {
 	println("---Guidelines to using Le-Creyol---")
 	println("")
 	println("$ ./lecreyol <option>")
-	prinln("where <option> is: ")
+	println("where <option> is: ")
 	println("-c\tTurn off dynamic optimal number of cluster centroid determination")
 	println("")
 	println("---Description of Program---")
