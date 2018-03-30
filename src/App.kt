@@ -1,49 +1,59 @@
 /* Imports */
 import kotlin.system.exitProcess
 import pso.*
+import java.io.FileNotFoundException
+import java.io.IOException
 
 fun main(args: Array<String>) {
-	if (args.isEmpty()) {
-		println("$ lecreyol -help\tFor help on using Le-Creyol.")
-		exitProcess(0)
-	}
-	
-	if (args[0] == "-help") {
-		usage()
-		exitProcess(0)
-	}
+    try {
+        if (args.isEmpty()) {
+            println("$ lecreyol -help\tFor help on using Le-Creyol.")
+            exitProcess(0)
+        }
 
-	info()
+        if (args[0] == "-help") {
+            usage()
+            exitProcess(0)
+        }
 
-	println("-Please enter the data filename (e.g. data1.csv)")
-	print("> ")
-	var filename: String = readLine().toString()
-	if (filename == "") {
-		do {
-			println("-Please provide a valid data filename (e.g. data1.csv)")
-			print("> ")
-			filename = readLine().toString()
-		} while (filename == "") 
-	}
+        info()
 
-	var nrClusters = 0
-	if (args[0] == "-c") {
-		do {
-			println("-Please enter the number of cluster centroids usually greater than 1 (e.g. 3)")
-			print("> ")
-            try {
-                nrClusters = readLine().toString().toInt()
-            } catch (e: NumberFormatException) {
-                println("-Invalid input, ensure that the number of cluster centroids is a discrete number greater than 1.")
-            }
-		} while (nrClusters < 1)
-	}
+        println("-Please enter the data filename (e.g. data1.csv)")
+        print("> ")
+        var filename: String = readLine().toString()
+        if (filename == "") {
+            do {
+                println("-Please provide a valid data filename (e.g. data1.csv)")
+                print("> ")
+                filename = readLine().toString()
+            } while (filename == "")
+        }
 
-	val pso: MultiObjectivePSO = MultiObjectivePSO(nrClusters)
-	pso.readDataFrom(filename)  // expecting some CSV file
-	pso.swarmify()  // run the multi-objective pso to cluster the data. 
-	pso.graphify()  // produce a pca or tnse reduced 2D or maybe 3D graph of cluster centroids, and data samples / particles. 
-	pso.stringify()  // write results to file, such as the cluster centroids, the amount data samples per centroid, etc.
+        var nrClusters = 0
+        if (args[0] == "-c") {
+            do {
+                println("-Please enter the number of cluster centroids usually greater than 1 (e.g. 3)")
+                print("> ")
+                try {
+                    nrClusters = readLine().toString().toInt()
+                } catch (e: NumberFormatException) {
+                    println("-Invalid input, ensure that the number of cluster centroids is a discrete number greater than 1.")
+                }
+            } while (nrClusters < 1)
+        }
+
+		val pso = MultiObjectivePSO(nrClusters)
+		pso.readDataFrom(filename)  // expecting some CSV file
+		pso.swarmify()  // run the multi-objective pso to cluster the data.
+		//pso.graphify()  // produce a pca or tnse reduced 2D or maybe 3D graph of cluster centroids, and data samples / particles.
+		pso.stringify()  // write results to file, such as the cluster centroids, the amount data samples per centroid, etc.
+	} catch (e: FileNotFoundException) {
+        println("ERROR => File ${e.message}")
+    } catch (e: IndexOutOfBoundsException) {
+        println("ERROR => ${e.message}")
+    } catch (e: IOException) {
+        println("ERROR => IO ${e.message}")
+    }
 }
 
 fun info() {
