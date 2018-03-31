@@ -1,0 +1,70 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{hyperref}
+\hypersetup{
+	colorlinks,
+	citecolor=black,
+	filecolor=black,
+	linkcolor=black,
+	urlcolor=black
+}
+
+\geometry{
+	a4paper,
+	left=30mm,
+	right=30mm,
+	top=30mm,
+}
+
+\graphicspath{ 
+	{Images/} 
+}
+
+%----------------------------------------------------------------------------------------
+%	TITLE PAGE
+%----------------------------------------------------------------------------------------
+
+\newcommand*{\titleGP}{
+	\begingroup
+	
+		\rule{\textwidth}{0.4pt}\vspace*{-\baselineskip}\vspace*{2pt}
+		\\[\baselineskip]
+
+		{\LARGE University of Pretoria : Computer Science - COS 710 Assignment 2 Technical Report} 
+		\\ [0.2\baselineskip]
+	
+		\rule{\textwidth}{0.4pt}\vspace*{-\baselineskip}\vspace{3.2pt}
+		\\[\baselineskip]
+
+		Compiled By 
+		\\[\baselineskip]	
+		{\Large Keoagile Dinake - u15041744 \par}
+		\bigskip
+		\bigskip 	
+ 		GitHub Repository:
+ 		\href{https://www.github.com/kmdinake/le-creyol}{\underline{Implementation Submission Repository} }
+
+		\vfill
+		{\scshape 2018} 
+		\\[0.3\baselineskip]
+
+	\endgroup
+}
+
+\begin{document}
+	\titleGP
+	\newpage
+	\tableofcontents
+	\section{Introduction}
+	\input{src/intro}
+	\section{Background}
+	\input{src/backg}
+	\section{Implementation}
+	\input{src/implement}
+	\section{Research Result(s)}
+	\input{src/res_res}
+	\section{Conclusion(s)}
+	\input{src/concl}
+\end{document}

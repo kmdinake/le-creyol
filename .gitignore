@@ -4,3 +4,8 @@
 out/*
 LICENSE
 README.md
+*.aux
+*.log
+*.dvi
+*.toc
+*.out
