@@ -3,9 +3,16 @@ import kotlin.system.exitProcess
 import pso.*
 import java.io.FileNotFoundException
 import java.io.IOException
+import kotlin.math.abs
+
+data class OptimalClusterSize(val clusterId: Int) {
+    var silhouetteScore: Double = 0.0
+    var centroids: MutableList<DoubleArray> = mutableListOf()
+    var averageSamplesPerCluster = mutableMapOf<Int, Int>()
+}
 
 fun main(args: Array<String>) {
-    try {
+   try {
         if (args.isEmpty()) {
             println("$ lecreyol -help\tFor help on using Le-Creyol.")
             exitProcess(0)
@@ -30,7 +37,7 @@ fun main(args: Array<String>) {
         }
 
         var nrClusters = 0
-        if (args[0] == "-c") {
+        if (args.size == 1 && args[0] == "-c") {
             do {
                 println("-Please enter the number of cluster centroids usually greater than 1 (e.g. 3)")
                 print("> ")
@@ -40,17 +47,75 @@ fun main(args: Array<String>) {
                     println("-Invalid input, ensure that the number of cluster centroids is a discrete number greater than 1.")
                 }
             } while (nrClusters < 1)
+            val pso = MultiObjectivePSO(nrClusters)
+            pso.readDataFrom(filename)  // expecting some CSV file
+            val averageSamplesPerCluster = mutableMapOf<Int, Int>()
+            (0 until nrClusters).forEach {
+                averageSamplesPerCluster[it] = 0
+            }
+            (0 until 50).forEach {
+                println("RUN $it")
+                pso.swarmify()  // run the multi-objective pso to cluster the data.
+                //pso.graphify()  // produce a pca or tnse reduced 2D or maybe 3D graph of cluster centroids, and data samples / particles.
+                pso.stringify()  // write results to file, such as the cluster centroids, the amount data samples per centroid, etc.
+                (0 until nrClusters).forEach {
+                    averageSamplesPerCluster[it] = averageSamplesPerCluster[it]!! + pso.samplesPerCluster[it]!!
+                }
+            }
+            println("After 50 Independent Runs the Average number of Samples Per Cluster is as follows:")
+            (0 until nrClusters).forEach {
+                println("Cluster $it has ${averageSamplesPerCluster[it]!! / 50} samples")
+            }
+        } else {
+            val nrClustersRange = listOf<Int>(2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)
+            val optimals: MutableList<OptimalClusterSize> = mutableListOf()
+            for (i in nrClustersRange.indices) {
+                println("Trying ${nrClustersRange[i]} clusters")
+                // Initialize Possible Optimal Cluster Size
+                optimals.add(OptimalClusterSize(nrClustersRange[i]))
+                optimals[i].silhouetteScore = 0.0
+                (0 until nrClustersRange[i]).forEach {
+                    optimals[i].averageSamplesPerCluster[it] = 0
+                }
+                // Initialize MOPSO
+                nrClusters = nrClustersRange[i]
+                val pso = MultiObjectivePSO(nrClusters)
+                pso.readDataFrom(filename)
+                // Run 50 Independent MOPSO Cycles
+                (0 until 50).forEach {
+                    println("RUN $it")
+                    pso.swarmify()
+                    //pso.graphify()
+                    pso.stringify()
+                    (0 until nrClusters).forEach {
+                        optimals[i].averageSamplesPerCluster[it] = optimals[i].averageSamplesPerCluster[it]!! + pso.samplesPerCluster[it]!!
+                    }
+                }
+                optimals[i].centroids = pso.optimalCentroids
+                optimals[i].silhouetteScore = pso.calcSilhouetteScore()
+            }
+            val silhouetteDistances = DoubleArray(optimals.size - 1)
+            (0 until (optimals.size - 1)).forEach { i ->
+                silhouetteDistances[i] = abs(optimals[i].silhouetteScore - optimals[i + 1].silhouetteScore)
+            }
+            var highest = Double.MIN_VALUE
+            var hIndex = -1
+            (0 until silhouetteDistances.size -1 ).forEach { i ->
+                val dist = abs(silhouetteDistances[i] - silhouetteDistances[i + 1])
+                if (dist > highest) {
+                    highest = dist
+                    hIndex = i
+                }
+            }
+            println("The optimal number of clusters is ${optimals[hIndex].clusterId}")
+            println("After 50 Independent Runs the Silhouette Score for using ${optimals[hIndex].clusterId} clusters is: ${optimals[hIndex].silhouetteScore}")
+            println("After 50 Independent Runs the Average number of Samples Per Cluster is as follows:")
+            (0 until optimals[hIndex].centroids.size).forEach {
+                println("Cluster $it has ${optimals[hIndex].averageSamplesPerCluster[it]!! / 50} samples")
+            }
         }
-
-		val pso = MultiObjectivePSO(nrClusters)
-		pso.readDataFrom(filename)  // expecting some CSV file
-		pso.swarmify()  // run the multi-objective pso to cluster the data.
-		//pso.graphify()  // produce a pca or tnse reduced 2D or maybe 3D graph of cluster centroids, and data samples / particles.
-		pso.stringify()  // write results to file, such as the cluster centroids, the amount data samples per centroid, etc.
-	} catch (e: FileNotFoundException) {
+    } catch (e: FileNotFoundException) {
         println("ERROR => File ${e.message}")
-    } catch (e: IndexOutOfBoundsException) {
-        println("ERROR => ${e.message}")
     } catch (e: IOException) {
         println("ERROR => IO ${e.message}")
     }
@@ -68,7 +133,8 @@ fun usage() {
 	println("")
 	println("$ ./lecreyol <option>")
 	println("where <option> is: ")
-	println("-c\tTurn off dynamic optimal number of cluster centroid determination")
+    println("-c -1\tTurn ON dynamic optimal number of cluster centroid determination")
+	println("-c\tTurn OFF dynamic optimal number of cluster centroid determination")
 	println("")
 	println("---Description of Program---")
 	println("")

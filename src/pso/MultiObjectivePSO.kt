@@ -2,6 +2,7 @@ package pso
 import java.io.File
 import java.util.Random
 import kotlin.math.pow
+import kotlin.math.max
 
 class MultiObjectivePSO (private val nrClusters: Int) {
     /* Constants */
@@ -19,6 +20,8 @@ class MultiObjectivePSO (private val nrClusters: Int) {
     private var r1: DoubleArray = DoubleArray(0)
     private var r2: DoubleArray = DoubleArray(0)
     private var samples: MutableList<DoubleArray> = mutableListOf()
+    var samplesPerCluster: MutableMap<Int, Int> = mutableMapOf<Int, Int>()
+    var optimalCentroids: MutableList<DoubleArray> = mutableListOf()
 
     /* Methods */
     fun readDataFrom(filename: String) {
@@ -49,9 +52,11 @@ class MultiObjectivePSO (private val nrClusters: Int) {
         while (epoch < this.nrEpochs) {
             println("Epoch $epoch")
             // Perform KMeans steps to cluster data samples
+            //println("---Clustering Data using KMeans---")
             cluster(this.minimizeSwarm.particles, sampleParticleCentroidMinSwarm)
             cluster(this.maximizeSwarm.particles, sampleParticleCentroidMaxSwarm)
             // Perform MOPSO Steps to find objectives
+            //println("---Optimizing Particles---")
             (0 until this.nrParticles).forEach { i ->
                 // Update the Personal best -> MIN
                 if (this.minimizeSwarm.particles[i].x[0] < this.minimizeSwarm.particles[i].y[0]) {
@@ -92,8 +97,8 @@ class MultiObjectivePSO (private val nrClusters: Int) {
             }
             randomizeRs()
             this.samples.shuffle() // Shuffle data samples to remove bias found in the order of presentation of data samples
-            this.minimizeSwarm.stringify()
-            this.maximizeSwarm.stringify()
+            //this.minimizeSwarm.stringify()
+            //this.maximizeSwarm.stringify()
             epoch += 1
         }
     }
@@ -106,7 +111,7 @@ class MultiObjectivePSO (private val nrClusters: Int) {
         println("---Printing Optimal Results---")
         println("After ${this.nrEpochs} epochs, the results of the Le-Creyol Multi Objective PSO are as follows:")
         val distMinMax: Boolean = optimalDistance(this.minimizeSwarm.globalBest, this.maximizeSwarm.globalBest)
-        val optimalCentroids = if (distMinMax) {
+        this.optimalCentroids = if (distMinMax) {
             this.minimizeSwarm.stringify()
             this.minimizeSwarm.globalBestCentroids
         } else {  // defaults to maximizeSwarm with a higher InterCluster distance
@@ -114,21 +119,51 @@ class MultiObjectivePSO (private val nrClusters: Int) {
             this.maximizeSwarm.globalBestCentroids
         }
         println("---Sample Classifications---")
-        var samplesPerCluster = mutableMapOf<String, Int>()
+        this.samplesPerCluster = mutableMapOf<Int, Int>()
         (0 until this.nrClusters).forEach { i ->
-            samplesPerCluster.put(i.toString(), 0)
+            this.samplesPerCluster[i] = 0
         }
         for (i in this.samples.indices) {
-            val c: Int = findClosestCentroid(optimalCentroids, samples[i])
-            var count = samplesPerCluster.get(c.toString())!!.toInt()
-            count += 1
-            samplesPerCluster.replace(c.toString(), count)
-            println("Sample $i belongs to Cluster $c")
+            val c: Int = findClosestCentroid(this.optimalCentroids, samples[i])
+            if (this.samplesPerCluster[c] != null) {
+                var count = this.samplesPerCluster[c]!!.toInt()
+                count += 1
+                this.samplesPerCluster.replace(c, count)
+                println("Sample $i belongs to Cluster $c")
+            }
         }
-        println("---Sample Per Cluster---")
-        (0 until this.nrClusters).forEach { i ->
-            println("Cluster $i has ${samplesPerCluster.get(i.toString())} samples")
+    }
+
+    fun calcSilhouetteScore(): Double {
+        var silhouetteScore: Double = 0.0
+        val sampleParticleCentroid = IntArray(this.samples.size, { -1 })
+        val bs = DoubleArray(this.optimalCentroids.size, { 0.0 })
+        for (s in this.samples.indices) {
+            sampleParticleCentroid[s] = findClosestCentroid(this.optimalCentroids, samples[s])
+            val tempCentroids: MutableList<DoubleArray> = MutableList(this.optimalCentroids.size, { DoubleArray(this.nrDimensions) })
+            for (i in this.optimalCentroids.indices) {
+                for (j in this.optimalCentroids[i].indices) {
+                    tempCentroids[i][j] = this.optimalCentroids[i][j]
+                }
+            }
+            if (sampleParticleCentroid[s] >= 0) {
+                tempCentroids.removeAt(sampleParticleCentroid[s])
+                bs[sampleParticleCentroid[s]] += calcInterClusterDistance(tempCentroids)
+            }
         }
+        val IntraDistances = arrayListOf<Double>()
+        val InterDistances = arrayListOf<Double>()
+        for (c in this.optimalCentroids.indices) {
+            val centroidSamples = findSamplesForCentroid(c, sampleParticleCentroid)
+            IntraDistances.add(calcIntraClusterDistance(this.optimalCentroids[c], centroidSamples))
+            InterDistances.add(bs[c] / centroidSamples.size)
+        }
+        val a = IntraDistances.sum() / IntraDistances.size // average Intra Cluster Distance
+        val b = InterDistances.sum() / InterDistances.size // average Inter Cluster Distance
+        silhouetteScore += (b - a) / max(a, b)
+
+        silhouetteScore /= this.samples.size // mean silhouette score
+        return silhouetteScore
     }
 
     /* Helpers */
@@ -176,7 +211,6 @@ class MultiObjectivePSO (private val nrClusters: Int) {
     }
 
     private fun cluster(particles: MutableList<Particle>, sampleParticleCentroid: MutableList<IntArray>) {
-        println("---Clustering Data using KMeans---")
         for (s in this.samples.indices) {
             for (p in particles.indices) {
                 sampleParticleCentroid[s][p] = findClosestCentroid(particles[p].centroids, samples[s])
