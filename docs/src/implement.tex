@@ -1,0 +1,149 @@
+\begin{flushleft}
+    \subsection{Dataset Descriptions}
+        \subsubsection{Iris Dataset}
+            \begin{itemize}
+                \item 150 Data samples
+                \item 4 Attributes (continuous-valued)
+                \item 3 Classes
+                \item 50 data samples per class
+                \item \href{https://archive.ics.uci.edu/ml/datasets/iris}{\underline{Iris - UCI ML Repository} }
+            \end{itemize}
+        \subsubsection{Wine Dataset}
+            \begin{itemize}
+                \item 179 Data samples
+                \item 13 Attributes (continuous-valued)
+                \item 3 Classes
+                \item <59, 71, 48> data samples per class relatively
+                \item \href{https://archive.ics.uci.edu/ml/datasets/wine}{\underline{Wine - UCI ML Repository} }
+            \end{itemize}
+        \subsubsection{Epileptic Seizure Recognition Dataset}
+            \begin{itemize}
+                \item 11500 Data samples
+                \item 178 Attributes (continuous-valued)
+                \item 5 Classes
+                \item 2300 data samples per class
+                \item \href{https://archive.ics.uci.edu/ml/datasets/Epileptic+Seizure+Recognition}
+            \end{itemize}
+
+    \subsection{Algorithm Parameters and Run Conditions}
+        \subsubsection{Priori Number of Clusters}
+            \begin{itemize}
+                \item 50 Independent Runs.
+                \item 100 Epochs per independent run.
+                \item 2 Particle Swarms.
+                \item 30 Particles per swarm.
+                \item w = 0.729844
+                \item c1 = c2 = 1.49618
+                \item r1 ~ U(0,1)
+                \item r1 ~ U(0,1)
+            \end{itemize}
+            Note that r1 and r2 have the same dimensions as a particle's position.
+        \subsubsection{Dynamic Number of Clusters}
+            \begin{itemize}
+                \item Possible number of clusters ranges from 2 to 15.
+                \item 50 Independent Runs per possible number of clusters.
+                \item 100 Epochs per independent run.
+                \item 2 Particle Swarms.
+                \item 30 Particles per swarm.
+                \item w = 0.729844
+                \item c1 = c2 = 1.49618
+                \item r1 ~ U(0,1)
+                \item r1 ~ U(0,1)
+            \end{itemize}
+            Note that r1 and r2 have the same dimensions as a particle's position.
+            The stopping condition for each independent are when the max number of epochs are reached, i.e. 100 epochs.
+
+    \subsection{Algorithm Initialization}
+        \subsection{Data Preprocessing}
+        The dataset is read from a specified file. From there, the data is processed in such as way as to \\
+        convert strings into numerical values.
+        
+        \subsection{Swarms and Particles}
+            To initialize the two swarms and the particles they contain the following was done:
+            Repeat the steps below for the number of specified particles, which in this case is 30.
+            \begin{itemize}
+                \item Get the bounds of each feature/attribute of the dataset.
+                \item Create two particles (say p1 and p2), one for each swarm.
+                \item For every cluster, generate two randomly distributed centroids within the bounds of each 
+                feature/attribute, and add one centroid to p1's centroids list, and the other to p2's centroids list.
+                \item Set p1's velocity ~ U(0,1) and p2's velocity ~ U(0,1)
+                \item Set p1's position to very large and very small real values, such that 
+                p1.position[0] = Double.MAX_VALUE and p1.position[1] = Double.MIN_VALUE
+                \item Set p2's position to very large and very small real values, such that 
+                p2.position[0] = Double.MAX_VALUE and p2.position[1] = Double.MIN_VALUE
+                \item Set the personal best of both p1 and p2 to their position vectors.
+                \item Add p1 to Swarm 1 and add p2 to Swarm 2
+            \end{itemize}
+            \item Set Swarm1's global best position to very large and very small real values, such that 
+                Swarm1.globalBestPosition[0] = Double.MAX_VALUE and Swarm1.globalBestPosition[1] = Double.MIN_VALUE
+            \item Set Swarm2's position to very large and very small real values, such that 
+                Swarm2.globalBestPosition[0] = Double.MAX_VALUE and Swarm2.globalBestPosition[1] = Double.MIN_VALUE
+    
+    \subsection{MOPSO applied to KMeans}
+        In the below defined approach, the aim was to improve the training of the KMeans algorithms such that the optimal 
+        set of clusters that satisfied the objective function mentioned in the Background section. The implementation is 
+        as follows:\\
+
+        # Optimization Step\\
+        Repeat\\
+            # KMeans Clustering Step\\
+            Repeat for each swarm s1 and s2 \\
+                Repeat for each data sample ds not yet presented \\
+                    find a particle from swarm s1 and s2 respectively, who's centroid is closest to ds (using euclidean distance measure)\\
+                For every particle p in swarm s1 and s2 respectively \\
+                    For every centroid in particle p \\
+                        move that centroid to the average(mean) of the data samples closest to that centroid \\
+                        calculate the intra-cluster distance of that centroid (using euclidean distance measure) \\
+                    calculate the inter-cluster distance of all the centroids in particle p (using euclidean distance measure) \\
+            # MOPSO Step \\
+            Repeat until max number of particles per swarm (i.e. 30) \\
+                update the personal best for each particle in swarm 1 -> minimize \\
+                update the personal best for each particle in swarm 2 -> maximize \\
+                update the global best position for swarm 1 -> minimize \\
+                update the global best set of centroids for swarm 1 \\
+                update the global best position for swarm 2 -> maximize \\
+                update the hlobal best set of centroids for swarm 2 \\
+            Repeat until max number of particles per swarm (i.e. 30) \\
+                update the velocity of every particle p in swarm 1 such that \\
+                p.velocity[t+1] = w * p.velocity[t] + cognitiveComponent + socialComponent where, \\
+                cognitiveComponent =  c1 * r1 * (swarm1.globalBestPosition[t] - p.position[t]) and \\
+                socialComponent = c2 * r2 * (swarm2.globalBestPosition[t] - p.position[t]) -> exchange global best information between swarms \\
+                \\
+                update the velocity of every particle p in swarm 2 such that \\
+                p.velocity[t+1] = w * p.velocity[t] + cognitiveComponent + socialComponent where, \\
+                cognitiveComponent =  c1 * r1 * (swarm2.globalBestPosition[t] - p.position[t]) and \\
+                socialComponent = c2 * r2 * (swarm1.globalBestPosition[t] - p.position[t]) -> exchange global best information between swarms \\
+                \\
+                for every particle p1 and p2 in swarm s1 and s2 respectively \\
+                    update the position of p1 such that p1.position[t + 1] = p1.position[t] + p1.velocity[t + 1] \\
+                    update the position of p2 such that p2.position[t + 1] = p2.position[t] + p2.velocity[t + 1] \\
+            re-initialize the values for r1 and r1 \\
+            randomly shuffle the order of the data samples in the dataset \\
+        until max epochs reached \\
+        \\ 
+        After running the Optimization Step 50 independent times the global best of either swarm is compared \\
+        and the one with the smallest intra-cluster distance and the largest inter-cluster distance is chosen \\
+        as the optimal result. The corresponding optimal set of centroids is the global best set of centroids \\
+        of the winning swarm. From here, the average number of samples belonging to each centroid in the optimal set \\
+        of centroids is computed and the execution ends. However, if a dynamic optimal number of clusters is \\
+        to be determined then, after the average number of samples belonging to each centroid in the optimal \\
+        set of centroids is computed the silhouette score of the optimal set of centroids is calculated and \\
+        stored along with the optimal set of centroids for that particle cluster size for later usage.\\ \\
+
+        Once all ranges of possible cluster sizes have been executed over 50 independent runs each, \\
+        the difference between cluster size (i)'s silhouette score and cluster size (i + 1)'s silhouette score \\
+        is then computed. The result optimal cluster size and it's corresponding set of optimal centroids \\
+        is then the cluster size (i)  who's silhouette difference is maximal, i.e. the cluster size (i) \\
+        who's silhouette score was subtracted by to obtain the steepest slope in silhouette differences.
+        For futher elaboration consider the following:\\
+        cluster size (i) has silhouette score 3, cluster size (i + 1) has silhouette score 1 and \\
+        cluster size (i + 2) has silhouette score 0.7. \\
+        Then the silhouette difference scores are as follows: \\
+        silhouette_difference[0] = 3 - 1 = 2 \\
+        silhouette_difference[1] = 1 - 0.7 = 0.3 \\
+        Thus when comparing these silhouette difference scores the maximal value is 2, which is also the steepest \\
+        difference in silhouette scores and belongs to the cluster(i + 1) who's value was subtracted by to obtain \\
+        the steepest and/or highest silhouette difference.
+        \\ \\
+        The results of this above implementation to the 3 datasets are provided and discussed in the Research Results section.
+\end{flushleft}

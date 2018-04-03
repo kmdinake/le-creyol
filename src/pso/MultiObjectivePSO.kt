@@ -29,13 +29,21 @@ class MultiObjectivePSO (private val nrClusters: Int) {
         println("---Reading File---")
         val bufReader = File(filename).bufferedReader()
         fileData = bufReader.readLines()
-        val features = fileData[0].split(",")
-        this.nrDimensions = features.subList(1, features.lastIndex).size
+        val features = if (fileData[0].contains(",")) {
+                fileData[0].split(",")
+            } else {
+                fileData[0].split(";")
+            }
+        this.nrDimensions = features.subList(1, features.lastIndex + 1).size
         this.samples = MutableList(fileData.size - 1, { DoubleArray(this.nrDimensions)})
         // convert each string to double
         (1 until fileData.size).forEach { i ->
-            var row = fileData[i].split(",")
-            row = row.subList(1, row.lastIndex)
+            var row = if (fileData[i].contains(",")) {
+                fileData[i].split(",")
+            } else {
+                fileData[i].split(";")
+            }
+            row = row.subList(1, row.lastIndex + 1)
             (0 until this.nrDimensions).forEach { j ->
                 this.samples[(i - 1)][j] = row[j].toDouble()
             }

@@ -1,0 +1,62 @@
+\begin{flushleft}
+    For each of the following dataset results, my solution was run over 50 independent runs for priori number of \\
+    clusters and 50 independent runs for each possible optimal number of clusters in the range from 2 to 15. \\
+    Therefore, the results showed below, are averages of those 50 independent runs.\\
+    \subsection{Iris Dataset Results}
+        \subsubsection{Priori Number of Clusters}
+            \begin{itemize}
+                \item Number of clusters: 3
+                \item Average number of samples per cluster: {50, 52, 48}
+            \end{itemize}
+            Given that the actual number of samples per cluster is {50, 50, 50}, \\
+            my implementation has an error rate of 2.667% (i.e. 4/150 samples were incorrectly clustered). \\ 
+        \subsubsection{Dynamic Optimal Number of Clusters}
+            \begin{itemize}
+                \item Determined optimal number of clusters: 3
+                \item Average number of samples per cluster: {53, 50, 47}
+            \end{itemize}
+            Given that the actual number of cluster is 3, my implementation was able to determine the correct optimal \\
+            number of clusters each time using the approach mentioned in the Implementation section. \\
+            For that optimal number of clusters, the average number of samples per cluster over those 50 independent \\
+            runs was {54, 50, 47}. Given that the actual number of samples per cluster is {50, 50, 50}, \\
+            my implementation has an error rate of 4% (i.e. 6/150 samples were incorrectly clustered). \\
+
+    \subsection{Wine Dataset Results}
+        \subsubsection{Priori Number of Clusters}
+            \begin{itemize}
+                \item Number of clusters: 3
+                \item Average number of samples per cluster: {73, 71, 35}
+            \end{itemize}
+            Given that the actual number of samples per cluster is {59, 71, 48}, \\
+            my implementation has an error rate of 15.084% (i.e. 27/179 samples were incorrectly clustered). \\ 
+        \subsubsection{Dynamic Optimal Number of Clusters}
+            \begin{itemize}
+                \item Determined optimal number of clusters: 4
+                \item Average number of samples per cluster: {46, 44, 46, 40}
+            \end{itemize}
+            Given that the actual number of cluster is 3, my implementation was off by 1 \\
+            cluster each time using the approach mentioned in the Implementation section. This is due to \\
+            the fact that the dataset was not normalized and thus skewed the results in favour of the attribute \\
+            with the highest value. To try and mitigate this effect, one could preprocess the dataset such that all \\
+            attributes are on the same scale, i.e. from 0 to 1. Also, one could apply Principal Component Analysis \\
+            (PCA) reduction on the dataset such that only "relevant" features of the dataset are utilized.
+            For that optimal number of clusters, the average number of samples per cluster over those 50 independent \\
+            runs was {46, 44, 46, 40}. Given that the actual number of samples per cluster is {59, 71, 48}, \\
+            my implementation has an error rate of 45.810% (i.e. 83/179 samples were incorrectly clustered). \\
+
+    \subsection{Epileptic Seizure Recognition Dataset Results}
+        \subsubsection{Priori Number of Clusters}
+            \begin{itemize}
+                \item Number of clusters: 5
+                \item Average number of samples per cluster: {3267, 2202, 3204, 2668, 159}
+            \end{itemize}
+            Given that the actual number of samples per cluster is {2300, 2300, 2300, 2300, 2300}, \\
+            my implementation has an error rate of 38.939% (i.e. 4478/11500 samples were incorrectly clustered). \\
+        \subsubsection{Dynamic Optimal Number of Clusters}
+            \begin{itemize}
+                \item Determined optimal number of clusters: 12
+                \item Average number of samples per cluster: {1298, 800, 977, 982, 666, 395, 1198, 934, 736, 1190, 1253, 1066}
+            \end{itemize}
+            Given that the actual number of samples per cluster is {2300, 2300, 2300, 2300, 2300}, \\
+            my implementation has an error rate of 47.783% (i.e. 5495/11500 samples were incorrectly clustered). \\
+\end{flushleft}

@@ -1,0 +1,28 @@
+\begin{flushleft}
+    \subsection{Solution Feasibility}
+        The focus of this assignment was to determine whether a MOPSO could be used to solve a static \\
+        data clustering problem, and In this report I have shown a method of how it could be achieved. \\
+    \subsection{Performance Observations}
+        The research results in the section above show that on different classes of data with varying \\
+        dimensions, the algorithm was able to produce some fairly accurate results.\\
+        On low dimensions the results were near 100% accuracy each attempt at executing the solution, as \\
+        in the case of the Iris dataset results. However, on the Wine dataset where the number of data \\
+        samples were roughly the same, the difference factor came in on the dimensions of the data. \\
+        Wine has 13 dimensions per data sample whereas Iris has only 4, and I believe that the difference \\
+        in the performance on the results is largely due to the varying scale of the features and the \\
+        chance that we're considering "non-relevant" features. So PCA reduction could be utilized, among \\
+        other dimension reduction algorithms. This issue of dimensionality can also be seen with the performance \\
+        of the solution on the Epileptic Seizure Recognition dataset, which had a dimensionality of 6 and \\
+        over 11000 data samples. It is worth noting that on 2/3 datasets, the optimal number of \\
+        clusters was mis-classified, and thus the performance of the data clustering was slightly better than just \\
+        randomly assignment of a data sample to a cluster. My understanding leads me to believe that Particle Swarm \\
+        Optimization may not perform well with high dimensional data. \\
+        Note that the above observations were consistent whether dynamic number of clusters were to be determined \\
+        or whether they were known prior to execution. \\
+    \subsection{Final words}
+    In my humble opinion, this is probably not the best use case for MOPSO, considering that the training takes ages \\
+    to complete. Also, it is worth mentioning that my approach has several flaws as pointed above and could possible be \\
+    mitigated through choosing a different method of clustering, add data preprocessing techniques, and use several PSO \\
+    performance enhancement methods to ensure better results. \\
+    With that being said, I enjoyed getting to work on such an assignment and look foward to learning more about Swarm Intelligence.\\
+\end{flushleft}

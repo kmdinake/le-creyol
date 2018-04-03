@@ -1,0 +1,65 @@
+\begin{flushleft}
+    \subsection{Data Clustering}
+        Data clustering is a common practice that is often used in 
+        Exploratory Data Analysis (EDA) and Data Mining (DM) for the 
+        benefit of gaining insight on your data. In a society where there 
+        is a vast amount of data to draw insight from, it is quite necessary 
+        for the knowledge extraction process to happen efficiently. Due to this 
+        many data scientists use Machine Learning (ML) algorithms, specifically 
+        unsupervised ML algorithms, because often times the data they wish to cluster 
+        does not have predefined labels.
+        \\
+        Granted that the focus of this assignment is on the application of MOPSO, rather 
+        than data clustering, I have chosen the KMeans algorithm which is a relatively simple 
+        yet effective unsupervised ML algorithm that will, for the sake of this assignment, 
+        demonstrate how MOPSO can be applied to traditional static data clustering. The reader 
+        should be aware that other unsupervised ML algorithms such as ...  that are commonly used
+        could perhaps provide a more efficient solution than the one proposed in this report. However, 
+        that investigation is ommitted in this report and left for the reader to persue.
+
+    \subsection{KMeans Clustering Algorithm}
+        The standard KMeans clustering algorithm operates by doing the following: \\
+        let S be the dataset, where each data sample is of I-dimensions \\
+        Randomly initialize K cluster centroids c[k] each of I-dimensions, where 1 <= k <= K \\
+        Repeat \\
+            let s be a data sample not yet presented \\
+            let c be the centroid closest to s \\
+            for every cluster c[k] \\
+                move that cluster to the average(mean) of points assigned to that cluster \\
+        Until stopping_condition \\
+
+        Note that for my implementation, I added slight variations to the standard KMeans algorithm to remove
+        any possible biases in the order of presentation or in the initial value for the centroids. 
+        For this, I simply randomly shuffled the data samples after every epoch and initialized each centroid to 
+        uniformly distributed values within the ranges of each attribute of the data set.
+
+    \subsection{Multi Objective Particle Swarm Optimization}
+        MOPSO is a class of Computation Intelligence, namely Swarm Intelligence, and often describes optimization 
+        problems with more than one, but less than four objectives to optimize.
+
+        For this assignment there were two objectives:
+        \begin{itemize}
+            \item minimize the intra-cluster distances, and
+            \item maximize the inter-cluster distances.
+        \end{itemize}
+
+        In my approach, I viewed the task at hand as a traditional clustering task that required finding a set of cluster centroids, 
+        such that the intra-cluster distances are minimized and the inter-cluster distances are maximize. As a result my approach 
+        involves using two sub-swarms, each swarm aiming to solve the objective function that finds the centroids who's summated 
+        intra-cluster distance is minimal and who's summated inter-cluster distance is maximal over all. However, with this approach, 
+        rises a need for communication between particles of each swarm such that the global best solutions of each swarm 
+        can be utilized in satisfying the given objectives. To achieve this I chose to represent a particle in the following way: \\
+        \begin{itemize}
+            \item A particle has a set of centroids, i.e. the set of centroids that satisfy the objectives.
+            \item A particle's position is a vector that contains the intra-cluster distances and the inter-cluster distances for the 
+            centroids belonging to that particle.
+            \item A particle's personal best and velocity vectors are of the same dimensions as the particle's position vector.
+        \end{itemize}
+        The swarms of the MOPSO algorithm are also then represented in the following way: Each swarm contains a set of particles, 
+        a global best position vector and a global best centroids set, which will be the set of centroids that make up the global 
+        best position vector's elements.
+
+        For the case of dynamically determining the optimal number of clusters, I applied the above approach through several cluster sizes, 
+        and with each, measuring the silhouette score and finally determining the optimal number of clusters by taking the difference between 
+        adjacent cluster's silhouette scores and selecting the one with the highest difference, i.e. selecting the cluster with the steepest slope.
+\end{flushleft}
